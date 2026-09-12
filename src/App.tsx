@@ -22,6 +22,8 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", prefs.theme === "dark");
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", prefs.theme === "dark" ? "#100e0b" : "#ebe4d6");
   }, [prefs.theme]);
 
   useEffect(() => {

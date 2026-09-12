@@ -13,6 +13,7 @@ import type { AiSuggestion, ElementType, Project, SaveStatus, ScriptElement } fr
 import { ELEMENT_LABELS } from "../types";
 import { AiPanel } from "./AiPanel";
 import { CharactersPanel } from "./CharactersPanel";
+import { isNarrowViewport, useNarrow } from "../narrow";
 import {
   IconBack,
   IconClose,
@@ -21,6 +22,7 @@ import {
   IconHelp,
   IconImport,
   IconMoon,
+  IconMore,
   IconPanel,
   IconSidebar,
   IconSun,
@@ -59,13 +61,15 @@ export function Editor({
   onChange: (project: Project) => void;
   onBack: () => void;
 }) {
+  const narrow = useNarrow();
   const [focusId, setFocusId] = useState(project.elements[0]?.id ?? "");
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const [leftOpen, setLeftOpen] = useState(() => !isNarrowViewport());
+  const [rightOpen, setRightOpen] = useState(() => !isNarrowViewport());
   const [rightTab, setRightTab] = useState<RightTab>("ai");
   const [focusMode, setFocusMode] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [suggestion, setSuggestion] = useState<AiSuggestion | null>(null);
@@ -93,6 +97,16 @@ export function Editor({
   }, [focusMode]);
 
   useEffect(() => {
+    if (narrow) {
+      setLeftOpen(false);
+      setRightOpen(false);
+    } else {
+      setLeftOpen(true);
+      setRightOpen(true);
+    }
+  }, [narrow]);
+
+  useEffect(() => {
     const id = pendingFocus.current ?? focusId;
     const node = areas.current[id];
     if (node) {
@@ -114,9 +128,47 @@ export function Editor({
     onChange({ ...project, elements, updatedAt: Date.now() });
   };
 
+  const closeDrawers = () => {
+    setLeftOpen(false);
+    setRightOpen(false);
+    setMoreOpen(false);
+    setExportOpen(false);
+  };
+
+  const blurPage = () => {
+    if (narrow && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
+  const toggleLeft = () => {
+    setMoreOpen(false);
+    setExportOpen(false);
+    const next = !leftOpen;
+    if (next && narrow) {
+      setRightOpen(false);
+      blurPage();
+    }
+    setLeftOpen(next);
+  };
+
+  const openRight = (tab: RightTab) => {
+    setMoreOpen(false);
+    setExportOpen(false);
+    if (narrow) setLeftOpen(false);
+    if (rightOpen && rightTab === tab && narrow) {
+      setRightOpen(false);
+      return;
+    }
+    setRightTab(tab);
+    setRightOpen(true);
+    if (narrow) blurPage();
+  };
+
   const jumpTo = (id: string) => {
     setFocusId(id);
     pendingFocus.current = id;
+    if (narrow) closeDrawers();
     requestAnimationFrame(() => {
       areas.current[id]?.scrollIntoView({ block: "center", behavior: "smooth" });
       areas.current[id]?.focus();
@@ -254,11 +306,13 @@ export function Editor({
           <button className="ghost" onClick={onBack} aria-label="Back to projects">
             <IconBack />
           </button>
-          <button className="ghost" onClick={() => setLeftOpen((v) => !v)} aria-label="Toggle scenes">
-            <IconSidebar />
-          </button>
+          {!narrow && (
+            <button className="ghost" onClick={toggleLeft} aria-label="Toggle scenes">
+              <IconSidebar />
+            </button>
+          )}
           <div className="doc-title">
-            <button className="title-btn" onClick={() => { setRightOpen(true); setRightTab("title"); }}>
+            <button className="title-btn" onClick={() => openRight("title")}>
               {project.kind === "tv"
                 ? project.titlePage.episodeTitle || project.titlePage.showName || "Untitled episode"
                 : project.titlePage.title || "Untitled"}
@@ -274,47 +328,122 @@ export function Editor({
           <span className={`save ${saveStatus}`}>{saveStatus === "saving" ? "Saving…" : "Saved"}</span>
         </div>
         <div className="chrome-right">
-          <button className="ghost" onClick={() => setHelpOpen(true)} aria-label="Keyboard help">
-            <IconHelp />
-          </button>
-          <button className="ghost" onClick={() => importRef.current?.click()} aria-label="Import">
-            <IconImport />
-          </button>
-          <div className="menu-wrap">
-            <button className="ghost" onClick={() => setExportOpen((v) => !v)} aria-label="Export">
-              <IconExport />
-            </button>
-            {exportOpen && (
-              <div className="menu">
-                <button onClick={exportFountain}>Fountain</button>
+          {narrow ? (
+            <>
+              <button className="ghost" onClick={onToggleTheme} aria-label="Toggle theme">
+                {theme === "dark" ? <IconSun /> : <IconMoon />}
+              </button>
+              <div className="menu-wrap">
                 <button
+                  className="ghost"
                   onClick={() => {
-                    void downloadPdf(project);
                     setExportOpen(false);
+                    setMoreOpen((v) => !v);
                   }}
+                  aria-label="More"
+                  aria-expanded={moreOpen}
                 >
-                  PDF
+                  <IconMore />
                 </button>
-                <button
-                  onClick={() => {
-                    downloadFdx(project);
-                    setExportOpen(false);
-                  }}
-                >
-                  Final Draft (FDX)
-                </button>
+                {moreOpen && (
+                  <div className="menu">
+                    <button
+                      onClick={() => {
+                        setHelpOpen(true);
+                        setMoreOpen(false);
+                      }}
+                    >
+                      Keyboard help
+                    </button>
+                    <button
+                      onClick={() => {
+                        importRef.current?.click();
+                        setMoreOpen(false);
+                      }}
+                    >
+                      Import
+                    </button>
+                    <button
+                      onClick={() => {
+                        exportFountain();
+                        setMoreOpen(false);
+                      }}
+                    >
+                      Export Fountain
+                    </button>
+                    <button
+                      onClick={() => {
+                        void downloadPdf(project);
+                        setMoreOpen(false);
+                      }}
+                    >
+                      Export PDF
+                    </button>
+                    <button
+                      onClick={() => {
+                        downloadFdx(project);
+                        setMoreOpen(false);
+                      }}
+                    >
+                      Export Final Draft (FDX)
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFocusMode((v) => !v);
+                        setMoreOpen(false);
+                      }}
+                    >
+                      Focus mode
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <button className="ghost" onClick={() => setFocusMode((v) => !v)} aria-label="Focus mode">
-            <IconFocus />
-          </button>
-          <button className="ghost" onClick={onToggleTheme} aria-label="Toggle theme">
-            {theme === "dark" ? <IconSun /> : <IconMoon />}
-          </button>
-          <button className="ghost" onClick={() => setRightOpen((v) => !v)} aria-label="Toggle assistant">
-            <IconPanel />
-          </button>
+            </>
+          ) : (
+            <>
+              <button className="ghost" onClick={() => setHelpOpen(true)} aria-label="Keyboard help">
+                <IconHelp />
+              </button>
+              <button className="ghost" onClick={() => importRef.current?.click()} aria-label="Import">
+                <IconImport />
+              </button>
+              <div className="menu-wrap">
+                <button className="ghost" onClick={() => setExportOpen((v) => !v)} aria-label="Export">
+                  <IconExport />
+                </button>
+                {exportOpen && (
+                  <div className="menu">
+                    <button onClick={exportFountain}>Fountain</button>
+                    <button
+                      onClick={() => {
+                        void downloadPdf(project);
+                        setExportOpen(false);
+                      }}
+                    >
+                      PDF
+                    </button>
+                    <button
+                      onClick={() => {
+                        downloadFdx(project);
+                        setExportOpen(false);
+                      }}
+                    >
+                      Final Draft (FDX)
+                    </button>
+                  </div>
+                )}
+              </div>
+              <button className="ghost" onClick={() => setFocusMode((v) => !v)} aria-label="Focus mode">
+                <IconFocus />
+              </button>
+              <button className="ghost" onClick={onToggleTheme} aria-label="Toggle theme">
+                {theme === "dark" ? <IconSun /> : <IconMoon />}
+              </button>
+              <button className="ghost" onClick={() => setRightOpen((v) => !v)} aria-label="Toggle assistant">
+                <IconPanel />
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -327,8 +456,19 @@ export function Editor({
       />
 
       <div className="workspace-body">
+        {narrow && (leftOpen || rightOpen) && !focusMode && (
+          <button className="rail-backdrop" aria-label="Close panel" onClick={closeDrawers} />
+        )}
         {leftOpen && !focusMode && (
-          <aside className="left-rail">
+          <aside className="left-rail" aria-label="Scene list">
+            {narrow && (
+              <div className="drawer-head">
+                <span>Scenes</span>
+                <button className="ghost" onClick={() => setLeftOpen(false)} aria-label="Close scenes">
+                  <IconClose />
+                </button>
+              </div>
+            )}
             <SceneList items={outline} activeId={activeScene} onJump={jumpTo} />
             {project.kind === "tv" && missing.length > 0 && (
               <div className="beat-insert">
@@ -344,7 +484,7 @@ export function Editor({
           </aside>
         )}
 
-        <main className="page-scroll" onClick={() => setExportOpen(false)}>
+        <main className="page-scroll" onClick={() => { setExportOpen(false); setMoreOpen(false); }}>
           <article className="paper" aria-label="Screenplay">
             <div className="title-page">
               {project.kind === "tv" ? (
@@ -394,7 +534,15 @@ export function Editor({
         </main>
 
         {rightOpen && !focusMode && (
-          <aside className="right-rail">
+          <aside className="right-rail" aria-label="Assistant">
+            {narrow && (
+              <div className="drawer-head">
+                <span>{rightTab === "ai" ? "AI" : rightTab === "characters" ? "Characters" : "Title"}</span>
+                <button className="ghost" onClick={() => setRightOpen(false)} aria-label="Close panel">
+                  <IconClose />
+                </button>
+              </div>
+            )}
             <div className="tabs">
               <button className={rightTab === "ai" ? "active" : ""} onClick={() => setRightTab("ai")}>
                 AI
@@ -440,6 +588,32 @@ export function Editor({
           </aside>
         )}
       </div>
+
+      {narrow && !focusMode && (
+        <nav className="mobile-dock" aria-label="Editor panels">
+          <button
+            className={leftOpen ? "active" : ""}
+            aria-pressed={leftOpen}
+            onClick={toggleLeft}
+          >
+            Scenes
+          </button>
+          <button
+            className={rightOpen && rightTab === "ai" ? "active" : ""}
+            aria-pressed={rightOpen && rightTab === "ai"}
+            onClick={() => openRight("ai")}
+          >
+            AI
+          </button>
+          <button
+            className={rightOpen && rightTab === "characters" ? "active" : ""}
+            aria-pressed={rightOpen && rightTab === "characters"}
+            onClick={() => openRight("characters")}
+          >
+            Characters
+          </button>
+        </nav>
+      )}
 
       {focusMode && (
         <button className="focus-exit" onClick={() => setFocusMode(false)}>
