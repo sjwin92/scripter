@@ -17,6 +17,8 @@
   --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
   --font-script: "Courier Prime", "Courier New", Courier, monospace;
   --radius: 14px;
+  --tap: 44px;
+  --dock-h: 0px;
 }
 
 html.dark {
@@ -45,6 +47,7 @@ html,
 body,
 #root {
   min-height: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -903,6 +906,12 @@ kbd {
   background: var(--bg);
 }
 
+.rail-backdrop,
+.drawer-head,
+.mobile-dock {
+  display: none;
+}
+
 @media (max-width: 1100px) {
   .workspace-body {
     grid-template-columns: 200px 1fr 280px;
@@ -913,25 +922,235 @@ kbd {
 }
 
 @media (max-width: 860px) {
+  :root {
+    --dock-h: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .home,
+  .wizard {
+    padding: 1.2rem 1rem calc(2.4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .home-top {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .home-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .home-promise,
   .kind-pick,
   .workspace-body {
     grid-template-columns: 1fr;
   }
+
+  .brand p {
+    max-width: 36rem;
+  }
+
+  .primary,
+  .kind-card,
+  .project-card {
+    min-height: var(--tap);
+  }
+
+  .primary {
+    justify-content: center;
+  }
+
+  .icon-danger {
+    width: var(--tap);
+    height: var(--tap);
+    display: grid;
+    place-items: center;
+  }
+
+  .ghost {
+    min-width: var(--tap);
+    min-height: var(--tap);
+    justify-content: center;
+  }
+
+  .chrome {
+    flex-wrap: wrap;
+    gap: 0.35rem 0.6rem;
+    padding: 0.35rem 0.5rem;
+    padding-top: max(0.35rem, env(safe-area-inset-top));
+    z-index: 12;
+  }
+
+  .chrome-left {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .chrome-center {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    padding: 0 0.15rem 0.15rem;
+  }
+
+  .structure-pill {
+    display: none;
+  }
+
+  .doc-title {
+    min-width: 0;
+  }
+
+  .title-btn {
+    max-width: min(42vw, 180px);
+  }
+
+  .chrome-left .kind-badge {
+    display: none;
+  }
+
+  .workspace {
+    padding-bottom: var(--dock-h);
+  }
+
+  .workspace-body {
+    display: block;
+    position: relative;
+  }
+
   .left-rail,
   .right-rail {
+    position: fixed;
+    top: var(--chrome-h, 80px);
+    bottom: var(--dock-h);
+    z-index: 9;
     min-height: 0;
+    width: min(22rem, 92vw);
+    max-width: 100%;
+    overflow: auto;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    padding-top: 0.6rem;
   }
+
+  .left-rail {
+    left: 0;
+    border-right: 1px solid var(--line);
+  }
+
+  .right-rail {
+    right: 0;
+    border-left: 1px solid var(--line);
+  }
+
+  .rail-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    top: var(--chrome-h, 80px);
+    bottom: var(--dock-h);
+    border: 0;
+    border-radius: 0;
+    background: rgba(18, 14, 10, 0.4);
+    z-index: 8;
+  }
+
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0 0.35rem 0.5rem;
+    font-weight: 600;
+  }
+
+  .mobile-dock {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    gap: 0.25rem;
+    background: var(--chrome);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--line);
+    padding: 0.3rem 0.45rem max(0.3rem, env(safe-area-inset-bottom));
+  }
+
+  .mobile-dock button {
+    flex: 1;
+    min-height: var(--tap);
+    border-radius: 10px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .mobile-dock button.active {
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+
+  .scene-list button,
+  .ai-actions button,
+  .char-card button,
+  .beat-insert button,
+  .tabs button,
+  .menu button {
+    min-height: var(--tap);
+    padding-block: 0.65rem;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .scene-list header {
+    padding-right: 0.15rem;
+  }
+
+  .page-scroll {
+    padding: 1rem 0.65rem 2rem;
+    overflow-x: hidden;
+  }
+
   .paper {
-    padding: 1.2rem 1rem 2rem;
+    padding: 1.1rem 0.85rem 2rem;
+    min-height: auto;
+    overflow-x: hidden;
   }
+
   .el-character,
   .el-parenthetical,
   .el-dialogue,
   .el-transition {
     margin-left: 0;
+    width: 100%;
   }
-  .chrome {
-    flex-wrap: wrap;
+
+  .el-scene_heading .el,
+  .el-action .el,
+  .el-character .el,
+  .el-parenthetical .el,
+  .el-dialogue .el,
+  .el-transition .el,
+  .el-act_break .el {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .modal {
+    width: min(520px, calc(100vw - 1.2rem));
+  }
+
+  .focus-exit,
+  .toast {
+    bottom: calc(var(--dock-h) + 0.8rem);
+  }
+
+  .workspace.is-focus {
+    padding-bottom: 0;
   }
 }
