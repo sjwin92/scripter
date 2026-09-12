@@ -979,6 +979,7 @@ kbd {
     gap: 0.35rem 0.6rem;
     padding: 0.35rem 0.5rem;
     padding-top: max(0.35rem, env(safe-area-inset-top));
+    z-index: 12;
   }
 
   .chrome-left {
@@ -1022,7 +1023,7 @@ kbd {
   .left-rail,
   .right-rail {
     position: fixed;
-    top: 0;
+    top: var(--chrome-h, 80px);
     bottom: var(--dock-h);
     z-index: 9;
     min-height: 0;
@@ -1031,7 +1032,7 @@ kbd {
     overflow: auto;
     background: var(--paper);
     box-shadow: var(--shadow);
-    padding-top: max(0.6rem, env(safe-area-inset-top));
+    padding-top: 0.6rem;
   }
 
   .left-rail {
@@ -1048,6 +1049,7 @@ kbd {
     display: block;
     position: fixed;
     inset: 0;
+    top: var(--chrome-h, 80px);
     bottom: var(--dock-h);
     border: 0;
     border-radius: 0;
@@ -1098,6 +1100,15 @@ kbd {
   .tabs button,
   .menu button {
     min-height: var(--tap);
+    padding-block: 0.65rem;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .scene-list header {
+    padding-right: 0.15rem;
   }
 
   .page-scroll {

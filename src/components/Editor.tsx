@@ -107,6 +107,18 @@ export function Editor({
   }, [narrow]);
 
   useEffect(() => {
+    const chrome = document.querySelector(".chrome");
+    if (!chrome) return;
+    const apply = () => {
+      document.documentElement.style.setProperty("--chrome-h", `${chrome.getBoundingClientRect().height}px`);
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(chrome);
+    return () => observer.disconnect();
+  }, [narrow, focusMode]);
+
+  useEffect(() => {
     const id = pendingFocus.current ?? focusId;
     const node = areas.current[id];
     if (node) {
@@ -250,6 +262,7 @@ export function Editor({
     const action = makeElement("action", "");
     const result = insertAfter(project.elements, project.elements.length - 1, [beat, scene, action]);
     updateElements(result.elements, scene.id);
+    if (narrow) closeDrawers();
   };
 
   const runAi = async (action: Parameters<typeof requestAssist>[2]) => {
