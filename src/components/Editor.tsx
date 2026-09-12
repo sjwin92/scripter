@@ -371,7 +371,12 @@ export function Editor({
                   spellCheck={el.type === "action" || el.type === "dialogue" || el.type === "parenthetical"}
                   rows={1}
                   aria-label={ELEMENT_LABELS[el.type]}
-                  onFocus={() => setFocusId(el.id)}
+                  onFocus={() => {
+                    setFocusId(el.id);
+                    if (el.type === "scene_heading" && /^INT\.\s*$/i.test(el.text)) {
+                      requestAnimationFrame(() => areas.current[el.id]?.select());
+                    }
+                  }}
                   onChange={(e) => changeText(el.id, e.target.value)}
                   onKeyDown={(e) => onKeyDown(e, index)}
                   onBlur={() => {

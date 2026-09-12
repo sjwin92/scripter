@@ -558,7 +558,15 @@ html.dark .paper {
 
 .el-wrap {
   position: relative;
-  margin: 0 0 0.15rem;
+  margin: 0 0 0.28rem;
+}
+
+.el-scene_heading {
+  margin-top: 0.85rem;
+}
+
+.el-character {
+  margin-top: 0.55rem;
 }
 
 .el-type {

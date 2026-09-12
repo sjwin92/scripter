@@ -15,7 +15,9 @@ export function buildOutline(elements: ScriptElement[]): OutlineItem[] {
       id: el.id,
       index,
       type: el.type,
-      label: el.text.trim() || (el.type === "act_break" ? "Act break" : "Untitled scene"),
+      label: /^INT\.\s*$/i.test(el.text.trim())
+        ? "Untitled scene"
+        : el.text.trim() || (el.type === "act_break" ? "Act break" : "Untitled scene"),
     });
   });
   return items;
