@@ -36,8 +36,9 @@ export function isCharacterCue(text: string): boolean {
   if (isSceneHeading(line) || isTransition(line) || isActBreak(line)) return false;
   const stripped = line.replace(CHARACTER_EXT, "").trim();
   if (!stripped) return false;
-  if (!/^[A-Z0-9][A-Z0-9 .'\-]*$/.test(stripped)) return false;
-  if (stripped.split(/\s+/).length > 6) return false;
+  if (/[.!?:,]/.test(stripped)) return false;
+  if (!/^[A-Z0-9][A-Z0-9 '\-]*$/.test(stripped)) return false;
+  if (stripped.split(/\s+/).length > 4) return false;
   return /[A-Z]/.test(stripped);
 }
 

@@ -20,6 +20,7 @@ describe("fountain", () => {
     expect(classifyStandalone("CUT TO:")).toBe("transition");
     expect(classifyStandalone("ACT TWO")).toBe("act_break");
     expect(classifyStandalone("MAYA")).toBe("character");
+    expect(classifyStandalone("MAYA RINSES A GLASS.")).toBe("action");
     expect(classifyStandalone("(quietly)")).toBe("parenthetical");
     expect(classifyStandalone("She waits.")).toBe("action");
   });

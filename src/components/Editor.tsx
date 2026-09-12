@@ -3,7 +3,7 @@ import { requestAssist } from "../ai";
 import { extractCharacters } from "../characters";
 import { applyType, insertAfter, makeElement, replaceScene, smartNormalize } from "../elements";
 import { downloadFdx, downloadFountainFile, fileStem } from "../fdx";
-import { parseFountain, titlePageFountain, toFountain } from "../fountain";
+import { isCharacterCue, parseFountain, titlePageFountain, toFountain } from "../fountain";
 import { parseImportedFile } from "../importScript";
 import { cycleType, nextOnEnter } from "../keyboard";
 import { estimatePageCount } from "../pagination";
@@ -146,6 +146,19 @@ export function Editor({
     if (event.key === "Tab") {
       event.preventDefault();
       const next = cycleType(el.type, event.shiftKey ? -1 : 1);
+      if (
+        !event.shiftKey &&
+        el.type === "action" &&
+        el.text.trim() &&
+        !isCharacterCue(el.text) &&
+        next === "character"
+      ) {
+        const fresh = makeElement("character", "");
+        const nextEls = [...project.elements];
+        nextEls.splice(index + 1, 0, fresh);
+        updateElements(nextEls, fresh.id);
+        return;
+      }
       changeType(el.id, next);
       return;
     }
@@ -442,7 +455,7 @@ export function Editor({
             <ul className="help-list">
               <li>
                 <kbd>Tab</kbd> / <kbd>Shift+Tab</kbd> cycle slugline, action, character, parenthetical, dialogue,
-                transition, act break
+                transition, act break. Tab after a written action line starts a new character cue.
               </li>
               <li>
                 <kbd>Enter</kbd> next logical element — character leads to dialogue, dialogue returns to action

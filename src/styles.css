@@ -21,10 +21,10 @@
 
 html.dark {
   color-scheme: dark;
-  --bg: #14120f;
-  --bg-deep: #0e0c0a;
-  --paper: #1c1914;
-  --ink: #efe7d6;
+  --bg: #100e0b;
+  --bg-deep: #0b0907;
+  --paper: #2a241c;
+  --ink: #f3ead8;
   --muted: #b3aa99;
   --faint: #7d7567;
   --accent: #3cb8b5;
@@ -529,14 +529,15 @@ html.focus-mode .workspace-body {
 }
 
 html.dark .paper {
-  box-shadow: var(--shadow);
-  outline: 1px solid var(--line);
+  background: #2f2920;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+  outline: 1px solid #4a4033;
 }
 
 .title-page {
   text-align: center;
-  padding: 1.6in 0 1.3in;
-  margin-bottom: 0.8in;
+  padding: 0.65in 0 0.55in;
+  margin-bottom: 0.45in;
   border-bottom: 1px solid var(--line);
 }
 
